@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#322d3f">
+<meta name="description" content="MrRebujito, proyecto académico de gestión de casetas, socios, cartas y licencias de feria. Explora su plataforma interactiva y el backend Java.">
+<meta property="og:title" content="MrRebujito · Gestión de feria">
+<meta property="og:description" content="Casetas, socios y licencias en una plataforma interactiva de portfolio.">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://juanjogamero.github.io/API-MrRebujito/">
+<title>MrRebujito | Gestión de Feria</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"><script defer src="app.js"></script>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" class="svg-icons" aria-hidden="true">
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/></symbol>
+<symbol id="i-tent" viewBox="0 0 24 24"><path d="M3 20 12 3l9 17M12 3v17M3 20h18M6 14h12"/></symbol>
+<symbol id="i-stamp" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-4 3-7 7-7s7 3 7 7M16 5a3 3 0 0 1 0 6m2 3c2 1 4 3 4 6"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 11v6m0-10h.01"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5m2-4v5h-5M20 12a8 8 0 0 1-14 5m-2 4v-5h5"/></symbol>
+</svg>
+<div class="shell">
+ <aside class="sidebar" id="sidebar">
+  <a class="brand" href="#inicio" aria-label="MrRebujito — inicio">
+   <span class="brand-symbol"><span class="symbol-diamond">✳</span></span>
+   <span class="brand-type"><strong>mr<span>rebujito</span>.</strong><small>GESTIÓN DE FERIA</small></span>
+  </a>
+  <div class="sidebar-overline">PLATAFORMA / 01</div>
+  <nav class="main-nav" aria-label="Menú principal">
+   <a data-nav="inicio" href="#inicio" class="active"><svg class="icon"><use href="#i-home"/></svg> Vista general</a>
+   <a data-nav="casetas" href="#casetas"><svg class="icon"><use href="#i-tent"/></svg> Casetas</a>
+   <a data-nav="licencias" href="#licencias"><svg class="icon"><use href="#i-stamp"/></svg> Licencias</a>
+   <a data-nav="socios" href="#socios"><svg class="icon"><use href="#i-users"/></svg> Socios</a>
+   <a data-nav="cartas" href="#cartas"><svg class="icon"><use href="#i-book"/></svg> Cartas</a>
+   <div class="nav-divider"></div>
+   <a data-nav="proyecto" href="#proyecto"><svg class="icon"><use href="#i-info"/></svg> El proyecto</a>
+   <a href="https://github.com/juanjogamero/API-MrRebujito" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-arrow"/></svg> Código en GitHub</a>
+  </nav>
+  <div class="side-bottom">
+   <div class="sidebar-ticket"><span class="ticket-kicker">TEMPORADA / FERIA</span><span class="ticket-mark">✳</span><strong>La feria empieza con una buena organización.</strong><small>Casetas · Socios · Licencias</small></div>
+   <p>Proyecto académico · 2.º DAM<br>Java 17 · Spring Boot · PostgreSQL</p>
+  </div>
+ </aside>
+ <div class="page">
+  <header class="topbar">
+   <div class="topbar-start"><button id="menu-toggle" class="mobile-menu" aria-label="Abrir menú" aria-expanded="false"><svg class="icon"><use href="#i-menu"/></svg></button><span class="location">MRREBUJITO <span>/</span> <strong id="current-section">Inicio</strong></span></div>
+   <div class="topbar-end"><span class="mode-label"><span class="mode-dot"></span> Entorno interactivo</span><label class="role-select" for="active-role"><span>Vista como</span><select id="active-role"><option value="INVITADO">Visitante</option><option value="CASETA">Caseta</option><option value="SOCIO">Socio</option><option value="AYUNTAMIENTO">Ayuntamiento</option><option value="ADMIN">Administrador</option></select></label></div>
+  </header>
+  <main>
+   <section id="view-inicio" class="view">
+    <div class="eyebrow"><span></span> ORGANIZACIÓN DE FERIA / SISTEMA DE GESTIÓN</div>
+    <div class="hero">
+      <div class="hero-copy"><span class="hero-micro">EL CORAZÓN DE LA FERIA</span><h1>Todo listo<br>para <em>disfrutar.</em></h1><p>Un solo espacio para organizar casetas, socios, cartas y licencias municipales.</p><button type="button" data-goto="casetas" class="hero-button">Explorar casetas <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+      <div class="hero-art" aria-hidden="true"><div class="hero-sun"></div><div class="lanterns"><i></i><i></i><i></i><i></i><i></i></div><div class="caseta-illustration"><div class="caseta-roof"><span class="roof-flower">✳</span><span>LA FERIA</span></div><div class="caseta-canopy"></div><div class="caseta-front"><div class="caseta-door"></div></div></div></div>
+    </div>
+    <div class="overview-meta"><span>EXPERIENCIA DE DEMOSTRACIÓN</span><span>Datos ficticios · Acciones almacenadas en este navegador</span></div>
+    <div class="metrics" id="metrics"></div>
+    <div class="section-intro"><div><span class="eyebrow">UNA FERIA, MUCHAS HISTORIAS</span><h2>Casetas destacadas</h2></div><button type="button" data-goto="casetas" class="text-link">Ver todas <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+    <div id="home-casetas" class="featured-grid"></div>
+    <div class="home-columns">
+      <div class="activity-panel"><div class="small-heading"><div><span class="eyebrow">TRAMITACIÓN</span><h3>Últimas solicitudes</h3></div><button type="button" data-goto="licencias" class="text-link">Gestionar <svg class="icon"><use href="#i-arrow"/></svg></button></div><div id="home-requests"></div></div>
+      <div class="info-panel"><span>✳</span><h3>Una feria bien organizada se disfruta más.</h3><p>MrRebujito conecta las casetas con sus socios y los ayuntamientos mediante solicitudes y cupos de licencias.</p><button type="button" data-goto="proyecto" class="text-link">Conocer el proyecto <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+    </div>
+   </section>
+   <section id="view-casetas" class="view" hidden>
+    <div class="page-intro"><div><span class="eyebrow">EL RECINTO / 01</span><h1>Casetas de feria<span class="period">.</span></h1><p>Consulta sus características, aforo, carta y socios.</p></div><span class="counter-label" id="caseta-counter"></span></div>
+    <div class="filters"><label class="search" for="caseta-search"><svg class="icon"><use href="#i-search"/></svg><input id="caseta-search" placeholder="Buscar casetas por nombre..." autocomplete="off"></label><select id="caseta-type" aria-label="Filtrar casetas"><option value="all">Todas las casetas</option><option value="publica">Públicas</option><option value="privada">Privadas</option></select></div>
+    <div id="caseta-grid" class="caseta-grid"></div>
+   </section>
+   <section id="view-licencias" class="view" hidden>
+    <div class="page-intro"><div><span class="eyebrow">AYUNTAMIENTOS / 02</span><h1>Licencias<span class="period">.</span></h1><p>Solicitud, validación y control de plazas autorizadas.</p></div><button id="open-request" class="action-button" data-action="open-request" type="button">+ Nueva solicitud</button></div>
+    <div class="quota-grid" id="quota-grid"></div>
+    <div class="section-intro compact"><div><span class="eyebrow">CONTROL DE SOLICITUDES</span><h2>Tramitaciones</h2></div><select id="license-filter" aria-label="Filtrar estado"><option value="all">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="APROBADA">Aprobadas</option><option value="RECHAZADA">Rechazadas</option></select></div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>Caseta</th><th>Ayuntamiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="license-rows"></tbody></table></div>
+    <p class="role-hint" id="license-hint"></p>
+   </section>
+   <section id="view-socios" class="view" hidden>
+    <div class="page-intro"><div><span class="eyebrow">PERSONAS / 03</span><h1>Socios<span class="period">.</span></h1><p>Miembros de las casetas y control de aforo.</p></div></div>
+    <div class="selection-bar"><label for="member-caseta">Selecciona una caseta</label><select id="member-caseta"></select><span id="member-occupancy" class="occupancy"></span></div>
+    <div id="member-content"></div>
+   </section>
+   <section id="view-cartas" class="view" hidden>
+    <div class="page-intro"><div><span class="eyebrow">GASTRONOMÍA / 04</span><h1>Las cartas<span class="period">.</span></h1><p>Bebidas y platos disponibles en cada caseta.</p></div></div>
+    <div class="selection-bar"><label for="menu-caseta">Selecciona una caseta</label><select id="menu-caseta"></select><span class="selection-note">Precios ilustrativos de la demo</span></div>
+    <div class="menu-head"><h2>Carta de productos</h2><button class="action-button" data-action="open-product" id="add-product">+ Añadir producto</button></div>
+    <div class="products-grid" id="product-content"></div>
+   </section>
+   <section id="view-proyecto" class="view" hidden>
+    <div class="page-intro"><div><span class="eyebrow">CASO DE ESTUDIO / 05</span><h1>Detrás de MrRebujito<span class="period">.</span></h1><p>De un proyecto de aula a una API REST documentada y comprobable.</p></div></div>
+    <div class="project-layout"><div class="project-lead"><span class="eyebrow">2.º DAM / JAVA 17</span><h2>Una API de feria con reglas de verdad.</h2><p>El proyecto conserva las entidades originales: casetas, socios, ayuntamientos, productos y solicitudes de licencia. El backend real aplica reglas de acceso por rol, comprueba el aforo y limita las aprobaciones al cupo municipal.</p><a class="action-button" href="https://github.com/juanjogamero/API-MrRebujito" target="_blank" rel="noopener noreferrer">Ver el backend en GitHub <svg class="icon"><use href="#i-arrow"/></svg></a></div><div class="technical-list"><h3>Arquitectura</h3><div><strong>01</strong><span>Java 17 / Spring Boot 3.5</span></div><div><strong>02</strong><span>Spring Data JPA / PostgreSQL</span></div><div><strong>03</strong><span>JWT y Spring Security</span></div><div><strong>04</strong><span>JUnit y GitHub Actions</span></div><div><strong>05</strong><span>Swagger / OpenAPI</span></div></div></div>
+    <div class="about-notice"><strong>Sobre esta versión web</strong><p>Es una simulación estática para explorar el funcionamiento sin instalar Java o PostgreSQL. Los datos de ejemplo y los cambios se guardan solo en este navegador. No se realizan gestiones municipales reales ni se emiten licencias oficiales. Para comprobar la seguridad y la persistencia reales, ejecuta el backend.</p><button id="reset-demo" class="ghost-button" data-action="reset" type="button"><svg class="icon"><use href="#i-refresh"/></svg> Restablecer datos de ejemplo</button></div>
+   </section>
+   <footer class="page-footer"><span>© MrRebujito · Proyecto académico 2.º DAM</span><span>Datos ficticios · <a href="https://github.com/juanjogamero/API-MrRebujito" target="_blank" rel="noopener noreferrer">Código fuente ↗</a></span></footer>
+  </main>
+ </div>
+</div>
+<dialog id="detail-dialog" class="detail-dialog" aria-labelledby="dialog-title"><button class="close-dialog" id="close-dialog" aria-label="Cerrar" type="button"><svg class="icon"><use href="#i-close"/></svg></button><div id="dialog-content"></div></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>
