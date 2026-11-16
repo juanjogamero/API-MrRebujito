@@ -1,94 +1,42 @@
 package mrRebujito.MrRebujito.controller;
 
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import mrRebujito.MrRebujito.dto.*;
 import mrRebujito.MrRebujito.entity.Caseta;
 import mrRebujito.MrRebujito.entity.Socio;
 import mrRebujito.MrRebujito.service.SocioService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-//Permite realizar las operaciones GET, POST, PUT, DELETE a través de HTTP
 @RestController
-
-//Todo en esta clase empieza por socio
 @RequestMapping("/socio")
-
-//Para la documentación
-@Tag(name = "Socios", description = "Controlador para la gestión de los socios")
+@Tag(name="Socios",description="Registro, perfil y casetas asociadas")
 public class SocioController {
-
-	// Crea automáticamente el new SocioService
-	@Autowired
-	private SocioService socioService;
-
-	 @PostMapping
-	    @ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Socio creado exitosamente"),
-	            @ApiResponse(responseCode = "400", description = "Solicitud inválida"),
-	            @ApiResponse(responseCode = "409", description = "El username ya está en uso") })
-	    public void saveSocio(@RequestBody Socio socio) {
-	        if (socioService.findSocioByUsername(socio.getUsername()).isPresent()) {
-	            ResponseEntity.status(HttpStatus.BAD_REQUEST);
-	        } else {
-	            Socio s = socioService.saveSocio(socio);
-	            if (s != null) {
-	                ResponseEntity.status(HttpStatus.CREATED);
-	            } else {
-	                ResponseEntity.status(HttpStatus.BAD_REQUEST);
-	            }
-	        }
-	    }
-
-	    @PutMapping
-	    @Operation(summary = "Actualizar un socio existente")
-	    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Socio actualizado exitosamente"),
-	            @ApiResponse(responseCode = "404", description = "Socio no encontrado"),
-	            @ApiResponse(responseCode = "400", description = "Solicitud inválida") })
-	    public void updateSocio(@RequestBody Socio updatedSocio) {
-	        Socio response = socioService.updateSocio(updatedSocio);
-	        if (response != null) {
-	            ResponseEntity.status(HttpStatus.OK);
-	        } else {
-	            ResponseEntity.status(HttpStatus.NOT_FOUND);
-	        }
-	    }
-
-	    @DeleteMapping
-	    @Operation(summary = "Eliminar un socio logueado")
-	    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Socio eliminado exitosamente"),
-	            @ApiResponse(responseCode = "404", description = "Socio no encontrado") })
-	    public void deleteSocio() {
-	        if (socioService.deleteSocio()) {
-	            ResponseEntity.status(HttpStatus.OK);
-	        } else {
-	            ResponseEntity.status(HttpStatus.NOT_FOUND);
-	        }
-	    }
-
-	    @GetMapping("/misCasetas")
-	    public ResponseEntity<List<Caseta>> getMisCasetas() {
-	        List<Caseta> casetas = socioService.getMisCasetas();
-	        if (casetas.isEmpty()) {
-	            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-	        }
-	        return ResponseEntity.ok(casetas);
-	    }
-	
-
+    private final SocioService service;
+    public SocioController(SocioService service){this.service=service;}
+    @PostMapping
+    public ResponseEntity<SocioPublicResponse> registrar(@Valid @RequestBody Socio socio){
+        Socio creado=service.saveSocio(socio);
+        return ResponseEntity.created(URI.create("/socio/"+creado.getId())).body(SocioPublicResponse.from(creado));
+    }
+    @PutMapping
+    public SocioPublicResponse actualizar(@RequestBody Socio data){
+        Socio actual=service.updateSocio(data);
+        if(actual==null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Socio no encontrado");
+        return SocioPublicResponse.from(actual);
+    }
+    @DeleteMapping
+    public ResponseEntity<Void> borrar(){
+        if(!service.deleteSocio())throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/misCasetas")
+    public List<CasetaPublicResponse> casetas(){
+        return service.getMisCasetas().stream().map(CasetaPublicResponse::from).toList();
+    }
 }
