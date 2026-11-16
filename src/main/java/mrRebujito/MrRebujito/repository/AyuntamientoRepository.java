@@ -1,15 +1,16 @@
 package mrRebujito.MrRebujito.repository;
 
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-
+import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
 import mrRebujito.MrRebujito.entity.Ayuntamiento;
 
-@Repository
-public interface AyuntamientoRepository extends JpaRepository<Ayuntamiento, Integer>{
-	@Query("SELECT a FROM Ayuntamiento a WHERE a.username=?1")
-	Optional<Ayuntamiento> findByUsername(String username);
+public interface AyuntamientoRepository extends JpaRepository<Ayuntamiento,Integer>{
+    Optional<Ayuntamiento> findByUsername(String username);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Ayuntamiento a WHERE a.id=:id")
+    Optional<Ayuntamiento> findByIdForUpdate(@Param("id")int id);
 }

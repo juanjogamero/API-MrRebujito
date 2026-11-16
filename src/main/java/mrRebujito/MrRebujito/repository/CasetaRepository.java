@@ -1,16 +1,19 @@
 package mrRebujito.MrRebujito.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import mrRebujito.MrRebujito.entity.Caseta;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import mrRebujito.MrRebujito.entity.Caseta;
 
-
-@Repository
-public interface CasetaRepository extends JpaRepository<Caseta, Integer> {
-	// Método para buscar por username
-	public Optional<Caseta> findByUsername(String username);
-	
-	//Metodo para buscar casetas por socio
+public interface CasetaRepository extends JpaRepository<Caseta,Integer> {
+    Optional<Caseta> findByUsername(String username);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM Caseta c WHERE c.id=:id")
+    Optional<Caseta> findByIdForUpdate(@Param("id")int id);
+    @Query("SELECT DISTINCT c FROM Caseta c JOIN c.socios s WHERE s.id=:id")
+    List<Caseta> findAllBySocioId(@Param("id")int socioId);
 }

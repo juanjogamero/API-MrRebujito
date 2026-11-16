@@ -2,157 +2,69 @@ package mrRebujito.MrRebujito.service;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import jakarta.transaction.Transactional;
-import mrRebujito.MrRebujito.entity.Ayuntamiento;
-import mrRebujito.MrRebujito.entity.Caseta;
-import mrRebujito.MrRebujito.entity.EstadoLicencia;
-import mrRebujito.MrRebujito.entity.SolicitudLicencia;
-import mrRebujito.MrRebujito.repository.SolicitudLicenciaRepository;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import mrRebujito.MrRebujito.entity.*;
+import mrRebujito.MrRebujito.repository.*;
 import mrRebujito.MrRebujito.security.JWTUtils;
 
 @Service
 public class SolicitudLicenciaService {
-	// Inyectamos la instancia de la clase SolicitudLicenciaRepository 
-	@Autowired
-	private SolicitudLicenciaRepository solicitudRepository;
-	
-	
-	@Autowired
-	private JWTUtils JWTUtils;
-	
-	
-	// Método para obtener una solicitud por id
-	public Optional<SolicitudLicencia> findSolicitudById(int id) {
-		return this.solicitudRepository.findById(id);
-	}
-	
-	
-	// Método para obtener todas las solicitudes
-	public List<SolicitudLicencia> findSolicitudesAll() {
-		return this.solicitudRepository.findAll();
-	}
-	
-	public List<SolicitudLicencia> getAllSolicitudesByAyuntamiento() {
-		Ayuntamiento ayuntamiento = JWTUtils.userLogin();
-		return this.solicitudRepository.findAllByAyuntamiento(ayuntamiento);
-	}
-	// Método para guardar una nueva solicitud
-	public SolicitudLicencia saveSolicitud(SolicitudLicencia solicitud) {
-		return this.solicitudRepository.save(solicitud);
-	}
-	
-	
-	@Transactional
-	public SolicitudLicencia update(int idSolicitudLicencia, SolicitudLicencia solicitudLicenciaActualizada) {
-	    Optional<SolicitudLicencia> oSolicitudLicencia = findSolicitudById(idSolicitudLicencia);
-
-	   
-	    
-	    if (oSolicitudLicencia.isPresent()) {
-	    	
-	        SolicitudLicencia solicitudExistente = oSolicitudLicencia.get();
-	        //Comprobamos que el auntamiento que actualiza la peticion es la de la licencia
-		    if (solicitudExistente.getAyuntamiento().equals(JWTUtils.userLogin())) {
-		    	
-			    
-		        EstadoLicencia nuevoEstado = solicitudLicenciaActualizada.getEstadoLicencia();
-	
-		        // Si el nuevo estado es 'APROBADA' aceptamos el update
-		        if (nuevoEstado.name().equals("APROBADA")) {
-		            
-		            Ayuntamiento ayuntamiento = solicitudExistente.getAyuntamiento();
-		            int ayuntamientoId = ayuntamiento.getId();
-		            
-		            // A. Contar las licencias activas
-		            long licenciasActivas = solicitudRepository.countApprovedLicensesByAyuntamiento(ayuntamientoId);
-		            int limiteMaximo = ayuntamiento.getLicenciaMax(); 
-		            
-		            // B. Validar la regla de negocio
-		            if (licenciasActivas >= limiteMaximo) {
-		                String mensaje = String.format("Error de límite: El Ayuntamiento %s ya ha alcanzado su límite de licencias (%d).", 
-		                                                ayuntamiento.getNombre(), limiteMaximo);
-		                throw new IllegalStateException(mensaje);
-		            }
-		        }
-		        
-		        // Si no hay problema, actualizamos y guardamos
-		        solicitudExistente.setEstadoLicencia(nuevoEstado);
-		        return saveSolicitud(solicitudExistente);
-			    }
-		    return null;
-	    }
-	    return null;
-	}
-	
-	
-	// Método para borrar una solicitud por su id
-	@Transactional
-	public boolean deleteSolicitud(int id) {
-		try {
-			Optional<SolicitudLicencia> solicitudO = solicitudRepository.findById(id);
-			if (!solicitudO.isPresent()) {
-				return false;
-			}
-
-			SolicitudLicencia solicitud = solicitudO.get();
-			
-			if (!solicitud.getEstadoLicencia().equals(EstadoLicencia.PENDIENTE)) {
-				return false;
-			}
-
-			Object userLogin = JWTUtils.userLogin();
-			if (!(userLogin instanceof Caseta)) {
-				return false;
-			}
-
-			Caseta caseta = (Caseta) userLogin;
-			
-			if (!caseta.getSolicitudesLicencia().contains(solicitud)) {
-				return false;
-			}
-			caseta.getSolicitudesLicencia().remove(solicitud);
-			solicitudRepository.deleteById(id);
-			
-			return true;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
-	//Método aceptar o rechazar solicitud
-	public boolean aceptarSolicitud(int id) {
-		boolean res = false;
-		Optional<SolicitudLicencia> solicitudO = solicitudRepository.findById(id);
-		if (solicitudO.isPresent()) {
-			Ayuntamiento ayuntamiento = JWTUtils.userLogin();
-			if (solicitudO.get().getAyuntamiento().equals(ayuntamiento)) {
-				solicitudO.get().setEstadoLicencia(EstadoLicencia.APROBADA);
-				solicitudRepository.save(solicitudO.get());
-				res = true;
-			}
-		}
-		return res;
-	}
-
-	public boolean rechazarSolicitud(int id) {
-		boolean res = false;
-		Optional<SolicitudLicencia> solicitudO = solicitudRepository.findById(id);
-		if (solicitudO.isPresent()) {
-			Ayuntamiento ayuntamiento = JWTUtils.userLogin();
-			if (solicitudO.get().getAyuntamiento().equals(ayuntamiento)) {
-				solicitudO.get().setEstadoLicencia(EstadoLicencia.RECHAZADA);
-				solicitudRepository.save(solicitudO.get());
-				res = true;
-			}
-		}
-		return res;
-	}
-	
-	
+    private final SolicitudLicenciaRepository repo;
+    private final AyuntamientoRepository ayuntamientos;
+    private final CasetaRepository casetas;
+    private final JWTUtils jwt;
+    public SolicitudLicenciaService(SolicitudLicenciaRepository repo,AyuntamientoRepository ayuntamientos,
+                                  CasetaRepository casetas,JWTUtils jwt){
+        this.repo=repo;this.ayuntamientos=ayuntamientos;this.casetas=casetas;this.jwt=jwt;
+    }
+    public Optional<SolicitudLicencia> findSolicitudById(int id){return repo.findById(id);}
+    @Transactional(readOnly=true)
+    public List<SolicitudLicencia> getAllSolicitudesByCaseta(){
+        Caseta c=jwt.userLogin();
+        return c==null?List.of():repo.findAllByCasetaId(c.getId());
+    }
+    public List<SolicitudLicencia> getAllSolicitudesByAyuntamiento(){
+        Ayuntamiento a=jwt.userLogin();
+        return a==null?List.of():repo.findAllByAyuntamiento(a);
+    }
+    public Optional<SolicitudLicencia> findOwnedById(int id){
+        Optional<SolicitudLicencia> found=repo.findById(id);
+        if(found.isEmpty())return found;
+        Actor user=jwt.userLogin();
+        if(user instanceof Ayuntamiento a&&found.get().getAyuntamiento().getId()==a.getId())return found;
+        if(user instanceof Caseta c&&repo.countByCasetaAndSolicitud(c.getId(),id)>0)return found;
+        return Optional.empty();
+    }
+    @Transactional
+    public boolean deleteSolicitud(int id){
+        Caseta actor=jwt.userLogin();
+        if(actor==null)return false;
+        Caseta c=casetas.findByIdForUpdate(actor.getId()).orElseThrow();
+        SolicitudLicencia s=repo.findByIdForUpdate(id).orElse(null);
+        if(s==null||s.getEstadoLicencia()!=EstadoLicencia.PENDIENTE)return false;
+        if(c.getSolicitudesLicencia().stream().noneMatch(item->item.getId()==id))return false;
+        c.getSolicitudesLicencia().removeIf(item->item.getId()==id);
+        casetas.saveAndFlush(c);repo.delete(s);return true;
+    }
+    @Transactional
+    public boolean aceptarSolicitud(int id){return cambiarEstado(id,EstadoLicencia.APROBADA);}
+    @Transactional
+    public boolean rechazarSolicitud(int id){return cambiarEstado(id,EstadoLicencia.RECHAZADA);}
+    private boolean cambiarEstado(int id,EstadoLicencia newState){
+        Ayuntamiento actor=jwt.userLogin();
+        if(actor==null)return false;
+        // El bloqueo municipal serializa aprobaciones simultáneas y protege el cupo.
+        Ayuntamiento a=ayuntamientos.findByIdForUpdate(actor.getId()).orElse(null);
+        if(a==null)return false;
+        SolicitudLicencia s=repo.findByIdForUpdate(id).orElse(null);
+        if(s==null||s.getAyuntamiento().getId()!=a.getId()||s.getEstadoLicencia()!=EstadoLicencia.PENDIENTE)
+            return false;
+        if(newState==EstadoLicencia.APROBADA&&
+            repo.countByAyuntamientoIdAndEstadoLicencia(a.getId(),EstadoLicencia.APROBADA)>=a.getLicenciaMax())
+            throw new IllegalStateException("El ayuntamiento ya ha alcanzado el cupo de licencias aprobadas");
+        s.setEstadoLicencia(newState);repo.save(s);return true;
+    }
 }

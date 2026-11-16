@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="455" viewBox="0 0 1280 455" role="img" aria-labelledby="t d"><title id="t">MrRebujito · La feria bien organizada</title><desc id="d">Portada editorial con caseta de feria de diseño propio.</desc>
+<rect width="1280" height="455" fill="#f7f0e8"/><path d="M52 62H1228" stroke="#ddcec5"/>
+<text x="54" y="41" fill="#aa644f" font-family="Arial" font-size="13" font-weight="700" letter-spacing="2">PROYECTO ACADÉMICO / 2º DAM</text>
+<text x="1226" y="41" text-anchor="end" fill="#8d7c7f" font-family="Arial" font-size="13">JAVA 17 · SPRING BOOT · POSTGRESQL</text>
+<text x="50" y="178" font-family="Georgia" font-size="85" letter-spacing="-4" fill="#342d3e">MrRebujito<tspan fill="#b65f4e">.</tspan></text>
+<text x="55" y="243" font-family="Georgia" font-style="italic" font-size="48" fill="#b05b4c">La feria, bien organizada.</text>
+<text x="56" y="289" font-family="Arial" font-size="19" fill="#796c77">Casetas, socios, productos y licencias en un mismo lugar.</text>
+<path d="M57 320H637" stroke="#ddcec5"/>
+<rect x="56" y="346" width="258" height="50" rx="7" fill="#352e42"/>
+<text x="185" y="377" font-family="Arial" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">EXPLORAR PLATAFORMA</text>
+<text x="57" y="427" fill="#a18a87" font-family="Arial" font-size="12" letter-spacing="1">API REST / JWT / JPA / GITHUB PAGES</text>
+<rect x="785" width="495" height="455" fill="#332d40"/><circle cx="1134" cy="95" r="151" fill="#604357" opacity=".65"/>
+<path d="M785 30Q1042 86 1280 30" stroke="#d4a470" stroke-width="3" fill="none"/>
+<g stroke="#d1a177" stroke-width="2"><path d="M861 49v84M957 62v75M1054 64v69M1143 54v79M1237 42v87"/></g>
+<g fill="#e8b17a"><ellipse cx="861" cy="139" rx="14" ry="17"/><ellipse cx="957" cy="141" rx="14" ry="17"/><ellipse cx="1054" cy="138" rx="14" ry="17"/><ellipse cx="1143" cy="139" rx="14" ry="17"/><ellipse cx="1237" cy="137" rx="14" ry="17"/></g>
+<path d="M865 251 1059 155 1253 251Z" fill="#f5e7d3" stroke="#b25b56" stroke-width="8"/>
+<text x="1059" y="237" text-anchor="middle" font-family="Georgia" font-size="28" fill="#914b4c">LA FERIA</text>
+<rect x="867" y="252" width="388" height="203" fill="#f1dac4"/>
+<g fill="#b56061"><rect x="893" y="252" width="30" height="203"/><rect x="952" y="252" width="30" height="203"/><rect x="1011" y="252" width="30" height="203"/><rect x="1070" y="252" width="30" height="203"/><rect x="1129" y="252" width="30" height="203"/><rect x="1188" y="252" width="30" height="203"/></g>
+<path d="M991 455v-72a68 68 0 0 1 136 0v72" fill="#45374a" stroke="#fff0dd" stroke-width="12"/>
+<path d="M865 253h389M865 297h389" stroke="#fcebd5" stroke-width="6"/>
+</svg>

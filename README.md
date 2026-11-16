@@ -1,35 +1,105 @@
-# MrRebujito — API de Gestión de Licencias de Casetas
+<div align="center">
+<a href="https://juanjogamero.github.io/API-MrRebujito/"><img src="docs/readme-cover.svg" width="100%" alt="MrRebujito: gestión de feria, casetas y licencias"></a>
 
-**MrRebujito** es una API REST desarrollada con **Spring Boot** diseñada para que los ayuntamientos gestionen de forma eficiente las licencias de casetas en ferias y eventos.  
-Permite administrar solicitudes, licencias, titulares, ubicaciones y estados de manera clara y automatizada.
+# MrRebujito · Sistema de Gestión de Feria
 
-**Postman:**<a>https://caos1234matao-4414147.postman.co/workspace/Caos-1234matao's-Workspace~3d39bbe8-4f36-40e5-825a-7c2d3d1d6b91/collection/49737959-6085bff7-058f-415d-a1d2-33e0c94e34f9?action=share&creator=49737959</a>
-**Trello:**<a>https://trello.com/invite/b/68e56599fc88a337a649e4dd/ATTI618d5033e98d52994f285c4be39de5be5C4D989A/proyecto-mrrebujito</a>
+**Una API REST para coordinar casetas, socios, cartas de productos y licencias municipales.**
 
----
+[**Abrir plataforma interactiva**](https://juanjogamero.github.io/API-MrRebujito/) · [**Ver código Java**](src/main/java/mrRebujito/MrRebujito) · [**Arquitectura y reglas**](Documentacion/ARQUITECTURA.md)
 
-##  Características principales
-
-- Gestión completa de casetas: creación, edición, eliminación y consulta.  
-- Control de titulares: propietarios, asociaciones o empresas.  
-- Sistema de solicitudes con aprobación o rechazo.  
-- Endpoints REST simples, ideales para paneles de administración.  
-- Arquitectura limpia con servicios, DTOs y repositorios.
+Java 17 · Spring Boot · PostgreSQL · JWT · GitHub Pages
+</div>
 
 ---
 
-## Diagrama UML
-![WhatsApp Image 2025-10-16 at 13 02 59](https://github.com/user-attachments/assets/8a3dfde0-2edb-4bcd-a027-f3da7637645a)
+## Descubre el proyecto
 
-<img width="996" height="531" alt="MrRebujito" src="https://github.com/user-attachments/assets/db16ca83-6b03-4d1d-932e-3b03b87b752a" />
+**MrRebujito** nació como proyecto colaborativo de segundo curso de DAM, con el objetivo de digitalizar la gestión de casetas de feria. La API permite gestionar casetas públicas y privadas, socios, comidas y bebidas, así como solicitudes de licencia ante un ayuntamiento.
 
+La **plataforma interactiva** permite explorar casetas, abrir fichas, consultar cartas, añadir socios dentro del aforo y simular aprobaciones o rechazos según el cupo municipal.
 
+> **Importante:** la web de GitHub Pages funciona de forma independiente. Sus datos son ficticios y los cambios se conservan únicamente en el navegador. No utiliza PostgreSQL, no autentica usuarios reales ni emite licencias oficiales.
+
+## Funcionalidades principales
+
+| Módulo | Funcionalidad |
+| --- | --- |
+| Casetas | Registro y consulta, aforo y carácter público/privado |
+| Socios | Asociación y retirada de miembros, con control de capacidad |
+| Productos | Carta de comidas y bebidas con precios |
+| Licencias | Solicitudes, aprobación, rechazo y control de cupos |
+| Ayuntamientos | Gestión de licencias disponibles y solicitudes recibidas |
+| Seguridad | JWT y cuatro roles: CASETA, SOCIO, AYUNTAMIENTO y ADMIN |
+
+## Ejecutar el backend
+
+Requisitos: **Java 17** y **Docker**.
+
+**macOS / Linux**
+
+~~~bash
+docker compose up -d
+export JWT_SECRET="$(openssl rand -base64 48)"
+./mvnw spring-boot:run
+~~~
+
+**Windows PowerShell**
+
+~~~powershell
+docker compose up -d
+$env:JWT_SECRET = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+.\mvnw.cmd spring-boot:run
+~~~
+
+El servicio arranca en **http://localhost:8080** y la documentación se encuentra en [**Swagger UI**](http://localhost:8080/swagger-ui.html).
+
+Registra una caseta o socio desde **POST /caseta** o **POST /socio**, inicia sesión mediante **POST /login** e introduce el token JWT en la cabecera Authorization con el formato Bearer TOKEN.
+
+Para crear el **primer administrador local** sin una contraseña predeterminada, proporciona las variables de entorno APP_ADMIN_USER y APP_ADMIN_PASSWORD (12 caracteres como mínimo) antes del arranque. Solo el administrador puede registrar ayuntamientos.
+
+## Pruebas y calidad
+
+[![Java API](https://github.com/juanjogamero/API-MrRebujito/actions/workflows/java.yml/badge.svg)](https://github.com/juanjogamero/API-MrRebujito/actions/workflows/java.yml)
+[![Demo web](https://github.com/juanjogamero/API-MrRebujito/actions/workflows/demo.yml/badge.svg)](https://github.com/juanjogamero/API-MrRebujito/actions/workflows/demo.yml)
+
+- **JUnit y Mockito:** reglas de aforo, licencias y validación de JWT.
+- **MockMvc y H2:** arranque de Spring Boot y autorización de endpoints.
+- **Node.js:** reglas de negocio de la demo, formularios y datos locales.
+- **GitHub Actions:** compilación y pruebas por cada cambio relevante.
+
+~~~bash
+./mvnw verify
+node scripts/check-demo.mjs
+~~~
+
+## Estructura del repositorio
+
+~~~text
+src/main/java/mrRebujito/MrRebujito/
+  controller/    Rutas HTTP
+  service/       Reglas de negocio y transacciones
+  repository/    Consultas JPA
+  entity/        Modelo de feria
+  security/      Spring Security y JWT
+  dto/           Respuestas sin datos sensibles
+src/test/        Pruebas
+docs/            Interfaz estática de GitHub Pages
+Documentacion/   Arquitectura y reglas de acceso
+docker-compose.yml
+~~~
+
+**Compatibilidad:** la ampliación cambia el mapeo de herencia JPA y el formato de los roles. Si tienes una base PostgreSQL antigua, debes realizar una copia y una migración antes de utilizarla. La configuración automática del esquema es solo para desarrollo local.
+
+## Un proyecto en equipo
+
+Este repositorio es un **fork de [MrRebujito/MrRebujito-Backend](https://github.com/MrRebujito/MrRebujito-Backend)**. La versión original se desarrolló como trabajo académico colaborativo; esta ampliación mantiene el dominio y añade pruebas, seguridad, documentación y una demostración visual para portfolio.
 
 ---
 
+<div align="center">
 
+**[Explorar MrRebujito en el navegador](https://juanjogamero.github.io/API-MrRebujito/)**
 
+<sub>Plataforma de ejemplo · Sin gestiones municipales reales</sub>
 
-
-
-
+</div>
