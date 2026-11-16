@@ -1,143 +1,86 @@
 package mrRebujito.MrRebujito.security;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-
-    @Autowired
-    private JWTAuthenticationFilter jwtAuthenticationFilter; 
-
-    @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    @Bean PasswordEncoder passwordEncoder(){return new BCryptPasswordEncoder();}
+    @Bean DaoAuthenticationProvider authenticationProvider(UserDetailsService users,PasswordEncoder encoder){
+        DaoAuthenticationProvider provider=new DaoAuthenticationProvider(users);
+        provider.setPasswordEncoder(encoder);
+        return provider;
     }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    @Bean AuthenticationManager authenticationManager(AuthenticationConfiguration config)throws Exception{
+        return config.getAuthenticationManager();
     }
-
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                
-                // ==========================================
-                // 1. AUTENTICACIÓN (Público)
-                // ==========================================
-                .requestMatchers("/login", "/userLogin").permitAll()
-                .requestMatchers("/login/actorExiste/{username}").permitAll()
-
-                // ==========================================
-                // 2. PUBLICO (Req. Funcional 1)
-                // ==========================================
-                // 1a. Registrarse como caseta o socio
-                .requestMatchers(HttpMethod.POST, "/caseta/registrar", "/socio/registrar").permitAll() 
-                // (Nota: Ajusta si tu ruta es solo /caseta o /socio en el POST)
-                .requestMatchers(HttpMethod.POST, "/caseta", "/socio").permitAll()
-
-                // 1b. Listar ayuntamientos
-                .requestMatchers(HttpMethod.GET, "/ayuntamiento", "/ayuntamiento/{id}").permitAll()
-
-                // 1c. Listar casetas y sus cartas (productos)
-                .requestMatchers(HttpMethod.GET, "/caseta", "/caseta/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/caseta/carta/{id}", "/producto", "/producto/{id}").permitAll()
-
-                // ==========================================
-                // 3. ADMINISTRADOR (Req. Funcional 6)
-                // ==========================================
-                .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                // 6b. Registrar ayuntamientos (Solo admin puede crear ayuntamientos)
-                .requestMatchers(HttpMethod.POST, "/ayuntamiento").hasAuthority("ADMIN")
-
-                // ==========================================
-                // 4. CASETA (Req. Funcional 3)
-                // ==========================================
-                // 3a. Gestionar solicitudes (Listar propias, crear, borrar si es pendiente)
-                .requestMatchers(HttpMethod.POST, "/solicitud").hasAuthority("CASETA") 
-                .requestMatchers(HttpMethod.DELETE, "/solicitud/{id}").hasAuthority("CASETA")
-                .requestMatchers(HttpMethod.GET, "/solicitud/Caseta").hasAuthority("CASETA") // Nueva ruta sugerida
-
-                // 3b. Gestionar carta (Añadir/Borrar/Modificar productos)
-                .requestMatchers(HttpMethod.POST, "/producto").hasAuthority("CASETA")
-                .requestMatchers(HttpMethod.PUT, "/producto/{id}").hasAuthority("CASETA")
-                .requestMatchers(HttpMethod.DELETE, "/producto/{id}").hasAuthority("CASETA")
-                
-                // 3c. Añadir/Eliminar socios
-                .requestMatchers(HttpMethod.POST, "/caseta/socios/{socioId}").hasAuthority("CASETA")
-                .requestMatchers(HttpMethod.DELETE, "/caseta/socios/{socioId}").hasAuthority("CASETA")
-                
-                // Editar sus propios datos
-                .requestMatchers(HttpMethod.PUT, "/caseta/{id}").hasAuthority("CASETA")
-                .requestMatchers(HttpMethod.DELETE, "/caseta/{id}").hasAuthority("CASETA")
-
-                // ==========================================
-                // 5. AYUNTAMIENTO (Req. Funcional 4)
-                // ==========================================
-                // 4a. Listar sus casetas aceptadas (Ruta privada del ayuntamiento)
-                .requestMatchers(HttpMethod.GET, "/solicitud/ayuntamiento").hasAuthority("AYUNTAMIENTO")
-
-                // IMPORTANTE: Cambiado a PUT porque cambia el estado de la BD
-                .requestMatchers(HttpMethod.PUT, "/solicitud/{id}/aceptar").hasAuthority("AYUNTAMIENTO")
-                .requestMatchers(HttpMethod.PUT, "/solicitud/{id}/rechazar").hasAuthority("AYUNTAMIENTO")
-                
-                // Editar sus propios datos
-                .requestMatchers(HttpMethod.PUT, "/ayuntamiento/{id}").hasAuthority("AYUNTAMIENTO")
-
-                // ==========================================
-                // 6. SOCIO (Req. Funcional 5)
-                // ==========================================
-                // 5b. Listar casetas a las que pertenece
-                .requestMatchers(HttpMethod.GET, "/socio/misCasetas").hasAuthority("SOCIO")
-                
-                // Editar sus datos (Req 2b)
-                .requestMatchers(HttpMethod.PUT, "/socio/{id}").hasAuthority("SOCIO")
-                .requestMatchers(HttpMethod.DELETE, "/socio/{id}").hasAuthority("SOCIO")
-
-
-                // SWAGGER (Documentación)
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                // CUALQUIER OTRA RUTA
-                .anyRequest().authenticated()
+    SecurityFilterChain filterChain(HttpSecurity http,JWTAuthenticationFilter filter,DaoAuthenticationProvider provider,
+                                  CorsConfigurationSource corsSource)throws Exception{
+        return http.csrf(csrf->csrf.disable())
+            .cors(cors->cors.configurationSource(corsSource))
+            .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(provider)
+            .authorizeHttpRequests(auth->auth
+                .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+                .requestMatchers("/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.POST,"/login","/caseta","/socio").permitAll()
+                .requestMatchers(HttpMethod.GET,"/ayuntamiento","/ayuntamiento/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET,"/caseta/socios","/caseta/carta").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.GET,"/caseta","/caseta/{id}","/caseta/carta/{id}",
+                        "/producto","/producto/{id}").permitAll()
+                .requestMatchers(HttpMethod.POST,"/administrador","/ayuntamiento").hasAuthority("ADMIN")
+                .requestMatchers("/administrador","/administrador/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT,"/ayuntamiento").hasAuthority("AYUNTAMIENTO")
+                .requestMatchers(HttpMethod.DELETE,"/ayuntamiento").hasAuthority("AYUNTAMIENTO")
+                .requestMatchers(HttpMethod.POST,"/caseta/solicitud/{ayuntamientoId}",
+                        "/caseta/socios/{idSocio}","/producto").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.DELETE,"/caseta/socios/{idSocio}","/producto/{id}").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.PUT,"/caseta","/producto/{id}").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.DELETE,"/caseta").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.GET,"/solicitud/caseta","/solicitud/Caseta").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.GET,"/solicitud/ayuntamiento","/solicitud/Ayuntamiento").hasAuthority("AYUNTAMIENTO")
+                .requestMatchers(HttpMethod.GET,"/solicitud/{id}").hasAnyAuthority("CASETA","AYUNTAMIENTO")
+                .requestMatchers(HttpMethod.DELETE,"/solicitud/{id}").hasAuthority("CASETA")
+                .requestMatchers(HttpMethod.PUT,"/solicitud/aceptar/{id}","/solicitud/rechazar/{id}").hasAuthority("AYUNTAMIENTO")
+                .requestMatchers(HttpMethod.GET,"/socio/misCasetas").hasAuthority("SOCIO")
+                .requestMatchers(HttpMethod.PUT,"/socio").hasAuthority("SOCIO")
+                .requestMatchers(HttpMethod.DELETE,"/socio").hasAuthority("SOCIO")
+                .anyRequest().denyAll()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+            .exceptionHandling(ex->ex
+                .authenticationEntryPoint((req,res,error)->res.sendError(HttpStatus.UNAUTHORIZED.value(),"Autenticación requerida"))
+                .accessDeniedHandler((req,res,error)->res.sendError(HttpStatus.FORBIDDEN.value(),"Permisos insuficientes")))
+            .addFilterBefore(filter,UsernamePasswordAuthenticationFilter.class).build();
     }
-
-    // Configuración de CORS para permitir peticiones desde Angular (localhost:4200)
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true);
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+    @Bean CorsConfigurationSource corsConfigurationSource(
+        @Value("${app.cors.allowed-origins:http://localhost:4200}")String origins){
+        CorsConfiguration cors=new CorsConfiguration();
+        cors.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).filter(s->!s.isEmpty()).toList());
+        cors.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        cors.setAllowedHeaders(java.util.List.of("Content-Type","Authorization"));
+        cors.setAllowCredentials(false);
+        UrlBasedCorsConfigurationSource src=new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**",cors);
+        return src;
     }
 }
