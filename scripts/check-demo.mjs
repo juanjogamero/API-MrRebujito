@@ -24,9 +24,7 @@ assert.equal(api.crearSolicitud(initial,1,1,"CASETA").ok,false,"No duplicar apro
 assert.equal(api.crearSolicitud(initial,1,2,"INVITADO").ok,false,"Visitante no puede solicitar");
 assert.equal(api.crearSolicitud(initial,1,2,"CASETA").ok,true,"Caseta puede solicitar");
 assert.equal(api.crearSolicitud(initial,1,2,"CASETA").ok,false,"No duplicar pendiente");
-assert.equal(api.decidirLicencia===undefined,true);
 const sample=api.seed();
-assert.equal(api.decidirLicencia===undefined,true);
 
 assert.equal(api.decidirLicencia(sample,102,"APROBADA","CASETA").ok,false);
 assert.equal(api.decidirLicencia(sample,102,"APROBADA","AYUNTAMIENTO").ok,true);
