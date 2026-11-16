@@ -2,103 +2,58 @@ package mrRebujito.MrRebujito.service;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import mrRebujito.MrRebujito.entity.Ayuntamiento;
-import mrRebujito.MrRebujito.entity.Caseta;
-import mrRebujito.MrRebujito.entity.Roles;
-import mrRebujito.MrRebujito.entity.Socio;
-import mrRebujito.MrRebujito.repository.SocioRepository;
+import org.springframework.transaction.annotation.Transactional;
+import mrRebujito.MrRebujito.entity.*;
+import mrRebujito.MrRebujito.repository.*;
 import mrRebujito.MrRebujito.security.JWTUtils;
 
 @Service
 public class SocioService {
-
-    @Autowired 
-    private SocioRepository socioRepository;
-
-    @Autowired
-    private JWTUtils jwtUtils;
-    
-	@Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    // Método para obtener un socio
-    public Optional<Socio> findSocioById(int id){
-        return this.socioRepository.findById(id);
+    private final SocioRepository socios;
+    private final CasetaRepository casetas;
+    private final JWTUtils jwt;
+    private final PasswordEncoder encoder;
+    public SocioService(SocioRepository socios,CasetaRepository casetas,JWTUtils jwt,PasswordEncoder encoder){
+        this.socios=socios;this.casetas=casetas;this.jwt=jwt;this.encoder=encoder;
     }
-    
-    public Optional<Socio> findByUsername(String username) {
-		return this.socioRepository.findByUsername(username);
-	}
-    
-    // Método para obtener todos los socios
-    public List<Socio> findAllSocios() {
-        return this.socioRepository.findAll();
+    public Optional<Socio> findSocioById(int id){return socios.findById(id);}
+    public Optional<Socio> findByUsername(String username){return socios.findByUsername(username);}
+    public List<Socio> findAllSocios(){return socios.findAll();}
+    public Optional<Socio> findSocioByUsername(String username){return socios.findByUsername(username);}
+    @Transactional
+    public Socio saveSocio(Socio socio){
+        socio.setId(0);socio.setVersion(0);socio.setRol(Roles.SOCIO);
+        socio.setPassword(encoder.encode(socio.getPassword()));
+        return socios.save(socio);
     }
-    
-    // Método para guardar un socio con contraseña encriptada
-    public Socio saveSocio(Socio socio) {
-        // Encriptar la contraseña antes de guardar
-        if (socio.getPassword() != null && !socio.getPassword().isEmpty()) {
-            String encryptedPassword = passwordEncoder.encode(socio.getPassword());
-            socio.setPassword(encryptedPassword);
+    @Transactional
+    public Socio updateSocio(Socio data){
+        Socio session=jwt.userLogin();
+        if(session==null)return null;
+        Socio s=socios.findById(session.getId()).orElse(null);
+        if(s==null)return null;
+        s.setNombre(data.getNombre());s.setPrimerApellido(data.getPrimerApellido());
+        s.setSegundoApellido(data.getSegundoApellido());s.setFoto(data.getFoto());
+        s.setCorreo(data.getCorreo());s.setDireccion(data.getDireccion());s.setTelefono(data.getTelefono());
+        return socios.save(s);
+    }
+    @Transactional
+    public boolean deleteSocio(){
+        Socio session=jwt.userLogin();
+        if(session==null)return false;
+        for(Caseta c:casetas.findAllBySocioId(session.getId())){
+            c.getSocios().removeIf(s->s.getId()==session.getId());
+            casetas.save(c);
         }
-        
-            socio.setRol(Roles.SOCIO);
-        
-        return this.socioRepository.save(socio);
+        socios.deleteById(session.getId());
+        return true;
     }
-    
-    // Método para actualizar un socio
-    public Socio updateSocio(Socio socio) {
-        Socio socioLogin = jwtUtils.userLogin();
-        
-        if(socioLogin != null) {
-            socioLogin.setNombre(socio.getNombre());
-            socioLogin.setPrimerApellido(socio.getPrimerApellido());
-            socioLogin.setSegundoApellido(socio.getSegundoApellido());
-            socioLogin.setFoto(socio.getFoto());
-            socioLogin.setCorreo(socio.getCorreo());
-            socioLogin.setDireccion(socio.getDireccion());
-            socioLogin.setTelefono(socio.getTelefono());
-            
-            return this.socioRepository.save(socioLogin);
-        }
-        
-        return null;
-    }
-    
-    // Método para eliminar el socio logueado
-    public boolean deleteSocio() {
-        Socio socioLogin = jwtUtils.userLogin();
-        
-        if (socioLogin != null) {
-            this.socioRepository.delete(socioLogin);
-            return true;
-        }
-        return false;
-    }
-    
-    
-    // Método para listar las casetas del socio logueado
-    public List<Caseta> getMisCasetas() {
-        Socio socioLogin = jwtUtils.userLogin();
-        
-        if (socioLogin != null) {
-            return this.socioRepository.findCasetasBySocioId(socioLogin.getId());
-        }
-        return null;
-    }
-    
-
-    
-    
-    public Optional<Socio> findSocioByUsername(String username){
-        return socioRepository.findByUsername(username);
+    @Transactional(readOnly=true)
+    public List<Caseta> getMisCasetas(){
+        Socio session=jwt.userLogin();
+        if(session==null)return List.of();
+        return casetas.findAllBySocioId(session.getId());
     }
 }

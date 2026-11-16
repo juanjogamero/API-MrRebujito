@@ -1,27 +1,29 @@
 package mrRebujito.MrRebujito.repository;
 
+import java.util.Collection;
 import java.util.List;
-
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import mrRebujito.MrRebujito.entity.Ayuntamiento;
+import jakarta.persistence.LockModeType;
 import mrRebujito.MrRebujito.entity.EstadoLicencia;
 import mrRebujito.MrRebujito.entity.SolicitudLicencia;
+import mrRebujito.MrRebujito.entity.Ayuntamiento;
 
-@Repository
-public interface SolicitudLicenciaRepository extends JpaRepository<SolicitudLicencia, Integer> {
-	/**
-     * Cuenta el número de licencias que están en estado APROBADA para un Ayuntamiento específico.
-     */
-    @Query("SELECT COUNT(s) FROM SolicitudLicencia s " +
-           "WHERE s.ayuntamiento.id = :ayuntamientoId AND s.estadoLicencia = 'APROBADA'")
-    long countApprovedLicensesByAyuntamiento(@Param("ayuntamientoId") int ayuntamientoId);
-    
-    @Query("SELECT COUNT(s) FROM SolicitudLicencia s WHERE s.ayuntamiento.id = :id AND s.estadoLicencia = :estado")
-    int countAprobadasByAyuntamientoId(@Param("id") int id, @Param("estado") EstadoLicencia estado);
-
-	List<SolicitudLicencia> findAllByAyuntamiento(Ayuntamiento ayuntamiento);
+public interface SolicitudLicenciaRepository extends JpaRepository<SolicitudLicencia,Integer> {
+    long countByAyuntamientoIdAndEstadoLicencia(int ayuntamientoId,EstadoLicencia estado);
+    long countByAyuntamientoId(int ayuntamientoId);
+    List<SolicitudLicencia> findAllByAyuntamiento(Ayuntamiento ayuntamiento);
+    @Query("SELECT DISTINCT s FROM Caseta c JOIN c.solicitudesLicencia s WHERE c.id=:casetaId")
+    List<SolicitudLicencia> findAllByCasetaId(@Param("casetaId")int casetaId);
+    @Query("SELECT COUNT(s) FROM Caseta c JOIN c.solicitudesLicencia s WHERE c.id=:casetaId AND s.id=:solicitudId")
+    long countByCasetaAndSolicitud(@Param("casetaId")int casetaId,@Param("solicitudId")int solicitudId);
+    @Query("SELECT COUNT(s) FROM Caseta c JOIN c.solicitudesLicencia s WHERE c.id=:casetaId AND s.ayuntamiento.id=:ayuntamientoId AND s.estadoLicencia IN :estados")
+    long countOpenByCasetaAndAyuntamiento(@Param("casetaId")int casetaId,
+       @Param("ayuntamientoId")int ayuntamientoId,@Param("estados")Collection<EstadoLicencia> estados);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM SolicitudLicencia s WHERE s.id=:id")
+    Optional<SolicitudLicencia> findByIdForUpdate(@Param("id")int id);
 }
