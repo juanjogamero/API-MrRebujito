@@ -2,6 +2,7 @@ package mrRebujito.MrRebujito.security;
 
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,7 +36,7 @@ public class SecurityConfiguration {
     }
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http,JWTAuthenticationFilter filter,DaoAuthenticationProvider provider,
-                                  CorsConfigurationSource corsSource)throws Exception{
+                                  @Qualifier("corsConfigurationSource") CorsConfigurationSource corsSource)throws Exception{
         return http.csrf(csrf->csrf.disable())
             .cors(cors->cors.configurationSource(corsSource))
             .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
